@@ -4,8 +4,8 @@
 using Oceananigans, JLD2, Plots, Printf
 
 # Set the filename (without the extension)
-filename = "gravitycurrent"
-
+# filename = "gravitycurrent"
+filename = "gravitycurrent_collision"
 # Read in the first iteration.  We do this to load the grid
 # filename * ".jld2" concatenates the extension to the end of the filename
 u_ic = FieldTimeSeries(filename * ".jld2", "u", iterations = 0)
@@ -73,7 +73,7 @@ anim = @animate for (i, iter) in enumerate(iterations)
 end
 
 # Save the animation to a file
-mp4(anim, "gravitycurrent.mp4", fps = 20) # hide
+mp4(anim, filename * ".mp4", fps = 20) # hide
 
 # Now, make a plot of our saved variables
 # In this case, plot the buoyancy at the bottom of the domain as a function of x and t
