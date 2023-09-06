@@ -1,5 +1,6 @@
 # This script analyzes the linear stability of a viscous stratified shear flow
-# using the SSF.jl solver written (in MATLAB) by William Smyth
+# using the SSF.jl solver written (in MATLAB) by William Smyth 
+#https://blogs.oregonstate.edu/salty/matlab-tools-to-solve-the-viscous-taylor-goldstein-equation-for-both-instabilities-and-waves/
 using Plotly
 using Statistics # used in SSF.jl
 using LinearAlgebra  # used in SSF.jl
