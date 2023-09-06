@@ -417,5 +417,5 @@ $RECYCLE.BIN/
 material to this gitignore file.
 
 *.jld2
-*.mp4
+#*.mp4
 Project1/enviornment/Manifest.toml
