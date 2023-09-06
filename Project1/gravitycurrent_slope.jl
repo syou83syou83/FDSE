@@ -6,28 +6,28 @@ using Oceananigans
 
 # First, we need to set some physical parameters for the simulation
 # Set the domain size in non-dimensional coordinates
-Lx = 7.5  # size in the x-direction
-Lz = 1   # size in the vertical (z) direction      #the equations are non-dimensionalized using the vertical domain height
+Lx = 10  # size in the x-direction
+Lz = 1   # size in the vertical (z) direction 
+
 # Set the grid size
 Nx = 256  # number of gridpoints in the x-direction
 Nz = 32   # number of gridpoints in the z-direction
 
 # Some timestepping parameters
 max_Δt = 0.05 # maximum allowable timestep 
-duration = 40 # The non-dimensional duration of the simulation
+duration = 20 # The non-dimensional duration of the simulation
 
 # Set the Reynolds number (Re=Ul/ν)
-Re = 5000*4
+Re = 5000
 
 # Set the change in the non-dimensional buouancy 
-# Δb = 5  # in paper it's [5,25]the equations are non-dimensionalized using the vertical domain height and the change in buoyancy
-gh = 0.15   # g'heavy
-gl = 0.05   # g'light
+Δb = 1 
+
 # Set the amplitude of the random perturbation (kick)
 kick = 0.05
 
 # Now, some parameters that will be used for the initial conditions
-xl = 1       #Lx / 10 # The location of the 'lock'
+xl = Lx / 10 # The location of the 'lock'
 Lf = Lx / 100 # The width of the initial buoyancy step
 
 # construct a rectilinear grid using an inbuilt Oceananigans function
@@ -51,13 +51,15 @@ b_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0),
                                 bottom = FluxBoundaryCondition(0),
                                 east = FluxBoundaryCondition(0),
                                 west = FluxBoundaryCondition(0))
-
+#define tiled gravity
+θ = 45 # degrees   \theta<tab>    #https://clima.github.io/OceananigansDocumentation/stable/generated/tilted_bottom_boundary_layer/
+ĝ = [sind(θ), 0, cosd(θ)]   #g\hat<tab>
 # Now, define a 'model' where we specify the grid, advection scheme, bcs, and other settings
 model = NonhydrostaticModel(; grid,
               advection = UpwindBiasedFifthOrder(),  # Specify the advection scheme.  Another good choice is WENO() which is more accurate but slower
             timestepper = :RungeKutta3, # Set the timestepping scheme, here 3rd order Runge-Kutta
                 tracers = (:b, :c),  # Set the name(s) of any tracers, here b is buoyancy and c is a passive tracer (e.g. dye)
-               buoyancy = Buoyancy(model=BuoyancyTracer()), # this tells the model that b will act as the buoyancy (and influence momentum) 
+               buoyancy = Buoyancy(model=BuoyancyTracer(), gravity_unit_vector = -ĝ), # this tells the model that b will act as the buoyancy (and influence momentum) 
                 closure = (ScalarDiffusivity(ν = 1 / Re, κ = 1 / Re)),  # set a constant kinematic viscosity and diffusivty, here just 1/Re since we are solving the non-dimensional equations 
     boundary_conditions = (u = u_bcs, w = w_bcs, b = b_bcs), # specify the boundary conditions that we defiend above
                coriolis = nothing # this line tells the mdoel not to include system rotation (no Coriolis acceleration)
@@ -68,8 +70,7 @@ model = NonhydrostaticModel(; grid,
 uᵢ(x, y, z) = kick * randn()
 vᵢ(x, y, z) = 0
 wᵢ(x, y, z) = kick * randn()
-bᵢ(x, y, z) = (tanh((x - xl) / Lf) * gl/2 + (gh -gl/2)) * 0.5 * (1 + tanh((-x + (Lx -xl)) / Lf))
-# bᵢ(x, y, z) = (Δb / 2) * (1 + tanh((x - xl) / Lf))
+bᵢ(x, y, z) = (Δb / 2) * (1 + tanh((x - xl) / Lf))
 cᵢ(x, y, z) = exp(-((x - Lx / 2) / (Lx / 50))^2) # Initialize with a thin tracer (dye) streak in the center of the domain
 
 # Send the initial conditions to the model to initialize the variables
@@ -109,7 +110,7 @@ b = model.tracers.b # extract the buoyancy
 c = model.tracers.c # extract the tracer
 
 # Set the name of the output file
-filename = "gravitycurrent_collision"
+filename = "gravitycurrent_slope"
 
 simulation.output_writers[:xz_slices] =
     JLD2OutputWriter(model, (; u, v, w, b, c),

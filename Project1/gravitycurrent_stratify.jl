@@ -6,8 +6,9 @@ using Oceananigans
 
 # First, we need to set some physical parameters for the simulation
 # Set the domain size in non-dimensional coordinates
-Lx = 7.5  # size in the x-direction
-Lz = 1   # size in the vertical (z) direction      #the equations are non-dimensionalized using the vertical domain height
+Lx = 10  # size in the x-direction
+Lz = 1   # size in the vertical (z) direction 
+
 # Set the grid size
 Nx = 256  # number of gridpoints in the x-direction
 Nz = 32   # number of gridpoints in the z-direction
@@ -17,17 +18,17 @@ max_Δt = 0.05 # maximum allowable timestep
 duration = 40 # The non-dimensional duration of the simulation
 
 # Set the Reynolds number (Re=Ul/ν)
-Re = 5000*4
+Re = 5000
 
 # Set the change in the non-dimensional buouancy 
-# Δb = 5  # in paper it's [5,25]the equations are non-dimensionalized using the vertical domain height and the change in buoyancy
-gh = 0.15   # g'heavy
-gl = 0.05   # g'light
+Δb = 1 
+gl = 1   # g'light
+zl = Lz * 0.5 # light density position relative to the ambient fluid. if 1/4, density on the left is closest to the 1/4 from the bottom.
 # Set the amplitude of the random perturbation (kick)
 kick = 0.05
 
 # Now, some parameters that will be used for the initial conditions
-xl = 1       #Lx / 10 # The location of the 'lock'
+xl = 0.2 # The location of the 'lock'
 Lf = Lx / 100 # The width of the initial buoyancy step
 
 # construct a rectilinear grid using an inbuilt Oceananigans function
@@ -68,9 +69,9 @@ model = NonhydrostaticModel(; grid,
 uᵢ(x, y, z) = kick * randn()
 vᵢ(x, y, z) = 0
 wᵢ(x, y, z) = kick * randn()
-bᵢ(x, y, z) = (tanh((x - xl) / Lf) * gl/2 + (gh -gl/2)) * 0.5 * (1 + tanh((-x + (Lx -xl)) / Lf))
 # bᵢ(x, y, z) = (Δb / 2) * (1 + tanh((x - xl) / Lf))
-cᵢ(x, y, z) = exp(-((x - Lx / 2) / (Lx / 50))^2) # Initialize with a thin tracer (dye) streak in the center of the domain
+bᵢ(x, y, z) = max(tanh((x - xl) / 0.01),0) * (gl / (Lz - zl) * z - zl / (Lz - zl))
+cᵢ(x, y, z) = 1-tanh((x-xl)/0.01) # exp(-((x - Lx / 2) / (Lx / 50))^2)  Initialize with a thin tracer (dye) streak in the center of the domain
 
 # Send the initial conditions to the model to initialize the variables
 set!(model, u = uᵢ, v = vᵢ, w = wᵢ, b = bᵢ, c = cᵢ)
@@ -109,8 +110,7 @@ b = model.tracers.b # extract the buoyancy
 c = model.tracers.c # extract the tracer
 
 # Set the name of the output file
-filename = "gravitycurrent_collision"
-
+filename = "gravitycurrent_stratify"
 simulation.output_writers[:xz_slices] =
     JLD2OutputWriter(model, (; u, v, w, b, c),
                           filename = filename * ".jld2",

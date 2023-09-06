@@ -5,7 +5,8 @@ using Oceananigans, JLD2, Plots, Printf
 
 # Set the filename (without the extension)
 # filename = "gravitycurrent"
-filename = "gravitycurrent_collision"
+# filename = "gravitycurrent_collision"
+# filename = "gravitycurrent_new"
 # Read in the first iteration.  We do this to load the grid
 # filename * ".jld2" concatenates the extension to the end of the filename
 u_ic = FieldTimeSeries(filename * ".jld2", "u", iterations = 0)
