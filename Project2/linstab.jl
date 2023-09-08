@@ -15,7 +15,7 @@ include("./code/ddz4.jl")
 # ********** User input parameters **********
 LZ = 1    # The z-domain size
 LX = 10   # The x-domain size (sets the range of wavenumbers to search)
-h = 0.1     # Shear layer width
+h = 0.1     # Shear layer width 0.1
 NZ = 100  # The number of gridpoints
 dz = LZ / NZ  # The grid spacing - must be evenly spaced
 nu = 1 / 5000  # Kinematic viscosity (or 1/Re)

@@ -1,12 +1,12 @@
 # This script simulates Kelvin-Helmholtz instability in 2D using Oceananigans
 
 # Load some standard libraries that we will need
-using Printf
+using Printf, Statistics
 using Oceananigans
 
 # First, we need to set some physical parameters for the simulation
 # Set the domain size in non-dimensional coordinates
-Lx = 8  # size in the x-direction
+Lx = 10  # size in the x-direction
 Lz = 1   # size in the vertical (z) direction 
 
 # Set the grid size
@@ -62,7 +62,7 @@ simulation = Simulation(model, Δt = max_Δt, stop_time = duration)
 # ### The `TimeStepWizard`
 wizard = TimeStepWizard(cfl = 0.85, max_change = 1.1, max_Δt = max_Δt)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(10))
-:w
+
 # ### A progress messenger
 start_time = time_ns()
 progress(sim) = @printf("i: % 6d, sim time: % 10s, wall time: % 10s, Δt: % 10s, CFL: %.2e\n",
@@ -83,10 +83,12 @@ b = model.tracers.b # extract the buoyancy
 ω = ∂z(u) - ∂x(w) # The spanwise vorticity
 χ = (1 / (Re * Pr)) * (∂x(b)^2 + ∂z(b)^2) # The dissipation rate of buoyancy variance
 ϵ = (1 / Re) * (∂x(u)^2 + ∂z(u)^2 + ∂x(v)^2 + ∂z(v)^2) # The dissipation rate of kinetic energy
+# Rig = ∂z(mean(b,dims=1)) / ∂z(mean(u,dims=1))^2 # this mean seems like a temporatory mean 
+# Rig = ∂z(b) / ∂z(u)^2
 
 # Set the name of the output file
-filename = "KH"
-
+filename = "KH_h01"
+# filename = "KH_buoyancy"
 simulation.output_writers[:xz_slices] =
     JLD2OutputWriter(model, (; u, v, w, b, ω, χ, ϵ),
                           filename = filename * ".jld2",
@@ -101,3 +103,4 @@ run!(simulation)
 
 # After the simulation is different, plot the results and save a movie
 include("plot_KH.jl")
+# include("plot_KH_onlyone.jl")
