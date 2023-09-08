@@ -4,7 +4,7 @@
 using Oceananigans, JLD2, Plots, Printf, Statistics
 
 # Set the filename (without the extension)
-filename = "KH_h01"
+filename = "KH_h005"
 
 # Read in the first iteration.  We do this to load the grid
 # filename * ".jld2" concatenates the extension to the end of the filename
@@ -54,7 +54,7 @@ end
 plot(0.2*[0:1:length(perturbation_energy)-1],log.(perturbation_energy), legend=:bottomright,
     title=filename*", the slope of the curve should be σ", label="Perturbation kinetic energy from velocity field",
     xlabel="Time", ylabel="log(Perturbation kinetic energy)")
-σ = 1.18  # h=0.1,σ=1.18; h=0.2,σ=0.819; h=0.3,σ=0.2; 
+σ = 1.12  # h=0.05,σ=1.18; h=0.1,σ=1.18; h=0.2,σ=0.819; h=0.3,σ=0.2; 
 plot!(0.2*[0:1:length(perturbation_energy)-1],0.2*[0:1:length(perturbation_energy)-1]*σ, legend=:topright,
         label="growth rate σ from linstab.jl")
 # savefig(filename*"growth"*".pdf")
