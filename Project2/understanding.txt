@@ -1,0 +1,19 @@
+LZ = 1    # The z-domain size
+LX = 10   # The x-domain size (sets the range of wavenumbers to search)
+h = 0.05     # Shear layer width 0.1
+NZ = 100  # The number of gridpoints
+dz = LZ / NZ  # The grid spacing - must be evenly spaced
+nu = 1 / 5000  # Kinematic viscosity (or 1/Re)
+kappa = nu    # Diffusivity
+S0 = 10       # Maximum shear
+N0 = sqrt(10)       # Maximum buoyancy frequency
+
+
+Q1 
+when h = 0.05  (k*,sigma*)=(8.58,1.12), the corresponding lamda = 2pi/8.58 = 0.73
+when h = 0.1  (k*,sigma*)=(4.48,1.18), the corresponding lamda = 2pi/4.48 = 1.4
+when h = 0.2  (k*,sigma*)=(2.2,), the corresponding lamda = 2pi/2.2 = 3
+which means when h =0.1, wavelength = 1.4, that is the distance between two peaks of the billows. 
+
+
+
