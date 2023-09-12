@@ -2,9 +2,8 @@
 # This script reads in output from KH.jl, makes a plot, and saves an animation
 
 using Oceananigans, JLD2, Plots, Printf, Statistics
-
 # Set the filename (without the extension)
-filename = "KH_h005"
+filename = "KH_h01_long"
 
 # Read in the first iteration.  We do this to load the grid
 # filename * ".jld2" concatenates the extension to the end of the filename
@@ -33,28 +32,38 @@ file_xz = jldopen(filename * ".jld2")
 iterations = parse.(Int, keys(file_xz["timeseries/t"]))
 perturbation_energy = []
 Rig_mean = []
+K_energy = []
+P_energy = []
+buoyancy_flux = []
+ϵ = []
+χ = []
 
 for (i, iter) in enumerate(iterations)
     u_xz = file_xz["timeseries/u/$iter"][:, 1, :]
+    v_xz = file_xz["timeseries/v/$iter"][:, 1, :]
     w_xz = file_xz["timeseries/w/$iter"][:, 1, :]
     b_xz = file_xz["timeseries/b/$iter"][:, 1, :]
+    ϵ_xz = file_xz["timeseries/ϵ/$iter"][:, 1, :]
+    χ_xz = file_xz["timeseries/χ/$iter"][:, 1, :]
     u_xz_perturbation = u_xz - repeat(mean(u_xz, dims = 1), size(u_xz)[1], 1)
     w_xz_perturbation = w_xz - repeat(mean(w_xz, dims = 1), size(w_xz)[1], 1)
     push!(perturbation_energy, 0.5 * sum(u_xz_perturbation.^2) + 0.5 * sum(w_xz_perturbation.^2))
-
+    push!(K_energy, 0.5 * (sum(u_xz.^2) + sum(v_xz.^2) + sum(w_xz.^2)))
+    push!(P_energy, sum(-b_xz * zb))   #B=b*h is buoyancy flux, -B*rou is rate of change of potential energy per unit volume.so -b*h*time_interval should be the potential energy  
+    push!(buoyancy_flux, sum(b_xz .* w_xz[:,1:end-1])*0.6)
+    push!(ϵ, sum(ϵ_xz))
+    push!(χ, sum(χ_xz))
     u_xz_mean = mean(u_xz, dims = 1)
     b_xz_mean = mean(b_xz, dims = 1)
     dz = zu[2]-zu[1]   # same as zb 
     Rig = (b_xz_mean[2:end]-b_xz_mean[1:end-1])/dz./((u_xz_mean[2:end]-u_xz_mean[1:end-1])/dz).^2  # Rig = dbdz ./ (dudz .^ 2)
     push!(Rig_mean,Rig)
-    # push!(Rig_mean, file_xz["timeseries/Rig/$iter"][1, 1, :])
-    # global Rig_mean=[Rig_mean mean(file_xz["timeseries/Rig/$iter"][:, 1, :],dims=1)[:]]
 end
 ################## compare growth rate 
 plot(0.2*[0:1:length(perturbation_energy)-1],log.(perturbation_energy), legend=:bottomright,
     title=filename*", the slope of the curve should be σ", label="Perturbation kinetic energy from velocity field",
     xlabel="Time", ylabel="log(Perturbation kinetic energy)")
-σ = 1.12  # h=0.05,σ=1.18; h=0.1,σ=1.18; h=0.2,σ=0.819; h=0.3,σ=0.2; 
+σ = 1.18  # h=0.05,σ=1.18; h=0.1,σ=1.18; h=0.2,σ=0.819; h=0.3,σ=0.2; 
 plot!(0.2*[0:1:length(perturbation_energy)-1],0.2*[0:1:length(perturbation_energy)-1]*σ, legend=:topright,
         label="growth rate σ from linstab.jl")
 # savefig(filename*"growth"*".pdf")
@@ -65,22 +74,26 @@ Rig_matrix = zeros(length(Rig_mean),length(Rig_mean[1]))
 for i in 1:length(Rig_mean)
     Rig_matrix[i,:] = Rig_mean[i]
 end
-heatmap(0.2*(1:length(Rig_mean)),zu[2:64], Rig_matrix',xlabel="Time",ylabel="z",title="Rig, "*filename,
+heatmap(0.2*(1:length(Rig_mean)),zu[2:length(Rig_mean[1])], Rig_matrix',xlabel="Time",ylabel="z",title="Rig, "*filename,
         clim=(0,1))
 # savefig(filename*"_Rig"*".pdf")
 ##################
 
-################## plot Rig vs depth and time, traditonal methods 
-# tt = 0.2*(1:102)
-# plot(zu[2:64],Rig_mean[1],title = filename,label="Time: "*string(tt[1]),xlabel="z",ylabel="Rig",ylims=(0,10))
-# plot!(zu[2:64],Rig_mean[20],label="Time: "*string(tt[20]))
-# plot!(zu[2:64],Rig_mean[60],label="Time: "*string(tt[60]))
-# plot!(zu[2:64],Rig_mean[100],label="Time: "*string(tt[100]))
-##################
+################## plot kinetic and potential energy and mixing efficiency
+
+plot(K_energy)
+plot!(P_energy)
 
 
+ΔKE = K_energy[2:end] - K_energy[1:end-1]
+ΔPE = P_energy[2:end] - P_energy[1:end-1]
+Γ = -ΔPE ./ (ΔKE + ΔPE)
+η = Γ ./ (1 .+ Γ)
+plot(η, ylims=(-1,1))
+plot!(-ΔPE ./ ΔKE)
 
-
+plot(Γ)
+# plot!(buoyancy_flux./ (ϵ .+ buoyancy_flux),ylims=(-1,1))
 
 
 # @info "Making an animation from saved data..."

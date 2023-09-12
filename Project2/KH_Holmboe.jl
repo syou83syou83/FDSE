@@ -7,20 +7,20 @@ using Oceananigans
 # First, we need to set some physical parameters for the simulation
 # Set the domain size in non-dimensional coordinates
 Lx = 10  # size in the x-direction
-Lz = 2   # size in the vertical (z) direction 1
+Lz = 1   # size in the vertical (z) direction 1
 
 # Set the grid size
-Nx = 128  # number of gridpoints in the x-direction 256
-Nz = 32   # number of gridpoints in the z-direction 64
+Nx = 256  # number of gridpoints in the x-direction 256
+Nz = 64   # number of gridpoints in the z-direction 64
 
 # Some timestepping parameters
 max_Δt = 0.02 # maximum allowable timestep 
-duration = 600 # The non-dimensional duration of the simulation
+duration = 100 # The non-dimensional duration of the simulation
 
 # Set the Reynolds number (Re=Ul/ν)
-Re = 5000
+Re = 5000 * 3  #15000
 # Set the Prandtl number (Pr=ν/κ)
-Pr = 1
+Pr = 8   # 8
 
 # Parameters for the initial condition:
 S₀=10 # maximum shear
@@ -51,7 +51,7 @@ model = NonhydrostaticModel(; grid,
 uᵢ(x, y, z) = S₀ * h * tanh( (z - Lz/2) / h) + kick * randn()
 vᵢ(x, y, z) = 0
 wᵢ(x, y, z) = kick * randn()
-bᵢ(x, y, z) = N₀^2 * h * tanh( (z - Lz/2) / h) + kick * randn()
+bᵢ(x, y, z) = N₀^2 * h * tanh( (z - Lz/2) / h * 5) + kick * randn()
 
 # Send the initial conditions to the model to initialize the variables
 set!(model, u = uᵢ, v = vᵢ, w = wᵢ, b = bᵢ)
@@ -87,13 +87,13 @@ b = model.tracers.b # extract the buoyancy
 # Rig = ∂z(b) / ∂z(u)^2
 
 # Set the name of the output file
-filename = "KH_h01_long"
+filename = "KH_Holmboe"
 # filename = "KH_buoyancy"
 simulation.output_writers[:xz_slices] =
     JLD2OutputWriter(model, (; u, v, w, b, ω, χ, ϵ),
                           filename = filename * ".jld2",
                           indices = (:, 1, :),
-                         schedule = TimeInterval(0.6),  #0.2
+                         schedule = TimeInterval(0.4),  #0.2
                             overwrite_existing = true)
 
 nothing # hide
