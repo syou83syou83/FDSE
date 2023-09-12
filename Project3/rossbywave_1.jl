@@ -1,5 +1,5 @@
 # A script to explore Rossby wave propagation and nonlinear behavior using Oceananigans
-
+# Tracer transport by linear and nonlinear Rossby waves by modifying amplitude of perterbation
 # Load some packages that we will need
 using Oceananigans
 using Printf
@@ -33,7 +33,7 @@ k = 2 * pi / 200kilometers
 l = 2 * pi / 200kilometers
 
 # Define functions for the initial conditions
-u₀ = 0.001   # units: 0.001m/s
+u₀ = 0.03   # units: 0.001m/s
 uᵢ(x, y, z) = u₀ * sin(k * x) * sin(l * y)
 vᵢ(x, y, z) = u₀ * (k / l) * cos(k * x) * cos(l * y)
 wᵢ(x, y, z) = 0
@@ -52,11 +52,11 @@ progress(sim) = @info string("Iter: ", iteration(sim),
 simulation.callbacks[:progress] = Callback(progress, IterationInterval(10))
 
 # Save output from the simulation
-filename = "rossbywave_base"
+filename = "rossbywave_1_u003"   #Tracer transport by linear and nonlinear Rossby waves by modifying amplitude of perterbation
 
 u, v, w = model.velocities
 c = model.tracers.c
-ω = ∂x(v) - ∂y(u) # The relative vorticity
+ω = ∂x(v) - ∂y(u) + model.coriolis.f₀ # The relative vorticity + coriolis
 # f₀ = model.coriolis.f₀
 simulation.output_writers[:jld2] = JLD2OutputWriter(model, (; u, v, w, c, ω),
                                                     schedule = IterationInterval(10),
@@ -68,4 +68,4 @@ simulation.output_writers[:jld2] = JLD2OutputWriter(model, (; u, v, w, c, ω),
 run!(simulation)
 
 # Make a plot of u at y=Ly/2 and save a movie
-include("plot_rossbywave.jl")
+include("plot_rossbywave_me.jl")
