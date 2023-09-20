@@ -32,7 +32,7 @@ required_biogeochemical_tracers(::PhytoplanktonZooplankton) = (:P, :Z)
 
 # The following function defines the forcing (RHS) for the phytoplankton (prey)
 # Note that when running as a box model (PZ_box.jl), z = 0
-@inline function (bgc::PhytoplanktonZooplankton)(::Val{:P}, x, y, z, t, P, Z)
+@inline function (bgc::PhytoplanktonZooplankton)(::Val{:P}, x, y, z, t, P, Z)  #表示bgc是 PhytoplanktonZooplankton 类型的对象上的一个方法。
     α = bgc.phytoplankton_growth_rate
     β = bgc.grazing_rate
     δ = bgc.grazing_efficiency

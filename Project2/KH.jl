@@ -15,7 +15,7 @@ Nz = 32   # number of gridpoints in the z-direction 64
 
 # Some timestepping parameters
 max_Δt = 0.02 # maximum allowable timestep 
-duration = 600 # The non-dimensional duration of the simulation
+duration = 400 # The non-dimensional duration of the simulation
 
 # Set the Reynolds number (Re=Ul/ν)
 Re = 5000
@@ -102,5 +102,5 @@ nothing # hide
 run!(simulation)
 
 # After the simulation is different, plot the results and save a movie
-include("plot_KH.jl")
-# include("plot_KH_onlyone.jl")
+# include("plot_KH.jl")
+include("plot_KH_growth.jl")

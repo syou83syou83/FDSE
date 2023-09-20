@@ -6,11 +6,12 @@ using Printf
 include("PZ.jl")
 
 # Set the diffusion coefficient
-κₜ = 1e-4
+κₜ = 5e-4  #1e-4
 
 # Set the velocity of the top boundary
-vel_top = 1.0
-
+vel_top = 1.0  #1.0
+growth_rate = .2  #1.0
+decay_length=0.2  # 0.2
 # define the grid
 grid = RectilinearGrid(topology = (Bounded, Flat, Bounded), size = (100, 100, ), extent = (1, 1, ))
 
@@ -28,14 +29,15 @@ sinking_velocity = Oceananigans.Fields.FunctionField{Center, Center, Center}(w_s
 # Construct the model using Oceananigans with the biogeochemistry handled by OceanBioME
 model = NonhydrostaticModel(; grid,
                               advection = UpwindBiasedFifthOrder(),
-                              biogeochemistry = PhytoplanktonZooplankton(; sinking_velocity),
+                            #   biogeochemistry = PhytoplanktonZooplankton(; sinking_velocity),
+                            biogeochemistry = PhytoplanktonZooplankton(phytoplankton_growth_rate = growth_rate,light_decay_length=decay_length),
                               closure = ScalarDiffusivity(ν = κₜ, κ = κₜ),
                               boundary_conditions = (u = u_bcs, w = w_bcs))
 
 set!(model, P = 0.1, Z = 0.1)
 
 # Set up the simulation with the timestep and stop time
-simulation = Simulation(model, Δt = 0.005, stop_time = 50)
+simulation = Simulation(model, Δt = 0.005, stop_time = 100)
 
 u, v, w = model.velocities # unpack velocity `Field`s
 P = model.tracers.P
@@ -66,4 +68,6 @@ simulation.callbacks[:progress] = Callback(progress, IterationInterval(200))
 run!(simulation)
 
 # Call a script to make an animation of the results (and save to PZ_cavity.mp4)
-include("plot_PZ_cavity.jl")
+# include("plot_PZ_cavity.jl")
+
+include("plot_PZ_timescale.jl")

@@ -13,13 +13,13 @@ include("PZ.jl") # Include the functions defined in PZ.jl
 @inline PAR(t) = 1  # or sin(t), etc.
 
 # This tells OceanBioME to use the PhytoplanktonZooplankton model that is defined in PZ.jl with the default parameters
-biogeochemistry = PhytoplanktonZooplankton()
+biogeochemistry = PhytoplanktonZooplankton(phytoplankton_growth_rate = 10.0)   #PhytoplanktonZooplankton()
 # To override any of the default parameters, do something like this:
 #biogeochemistry = PhytoplanktonZooplankton(phytoplankton_growth_rate = 0.5)
 
 model = BoxModel(; biogeochemistry)
-model.Δt = 0.05
-model.stop_time = 50
+model.Δt = 0.01  #0.05
+model.stop_time = 500  #50
 
 # Set the initial conditions
 set!(model, P = 0.1, Z = 0.1)
@@ -37,7 +37,7 @@ times = parse.(Float64, keys(file["values"]))
 timeseries = NamedTuple{vars}(ntuple(t -> zeros(length(times)), length(vars)))
 
 for (idx, time) in enumerate(times)
-    values = file["values/$time"]
+    values = file["values/$time"] # values = file["values/0.25"] results in (P = 0.1253076715725275, Z = 0.09526772338114205)
     for tracer in vars
         getproperty(timeseries, tracer)[idx] = values[tracer]
     end

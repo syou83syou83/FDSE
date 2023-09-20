@@ -7,15 +7,15 @@ using Printf
 include("PZ.jl")
 
 # Set the diffusion coefficient
-κₜ = 0.0
+κₜ = 1e-5  #0.0
 
 # define the grid
 grid = RectilinearGrid(topology = (Flat, Flat, Bounded), size = (100, ), extent = (1, ))
 
 # Specify the biogeochemical model
-biogeochemistry = PhytoplanktonZooplankton()
+biogeochemistry = PhytoplanktonZooplankton(phytoplankton_growth_rate = 10., light_decay_length=0.2)
 # To change the e-folding decay length for the light, replace with the following
-#biogeochemistry = PhytoplanktonZooplankton(light_decay_length=0.1)
+#biogeochemistry = PhytoplanktonZooplankton(light_decay_length=0.1)  #original 0.2
 
 # Construct the model using Oceananigans with the biogeochemistry handled by OceanBioME
 model = NonhydrostaticModel(; grid,
@@ -25,7 +25,7 @@ model = NonhydrostaticModel(; grid,
 set!(model, P = 0.1, Z = 0.1)
 
 # Set up the simulation with the timestep and stop time
-simulation = Simulation(model, Δt = 0.01, stop_time = 500)
+simulation = Simulation(model, Δt = 0.005, stop_time = 200)
 
 # Create an 'output_writer' to save data periodically
 simulation.output_writers[:tracers] = JLD2OutputWriter(model, model.tracers,

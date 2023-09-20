@@ -49,8 +49,9 @@ for (i, iter) in enumerate(iterations)
     w_xz_perturbation = w_xz - repeat(mean(w_xz, dims = 1), size(w_xz)[1], 1)
     push!(perturbation_energy, 0.5 * sum(u_xz_perturbation.^2) + 0.5 * sum(w_xz_perturbation.^2))
     push!(K_energy, 0.5 * (sum(u_xz.^2) + sum(v_xz.^2) + sum(w_xz.^2)))
-    push!(P_energy, sum(-b_xz * zb))   #B=b*h is buoyancy flux, -B*rou is rate of change of potential energy per unit volume.so -b*h*time_interval should be the potential energy  
-    push!(buoyancy_flux, sum(b_xz .* w_xz[:,1:end-1])*0.6)
+    # push!(P_energy, sum(-b_xz * zb * 0.6))   #B=b*h is buoyancy flux, -B*rou is rate of change of potential energy per unit volume.so -b*h*time_interval should be the potential energy  
+    push!(P_energy, sum(-b_xz .* (w_xz[:,1:end-1].+w_xz[:,2:end])/2) * 0.6)
+    push!(buoyancy_flux, sum(-b_xz .* (w_xz[:,1:end-1].+w_xz[:,2:end])/2))
     push!(ϵ, sum(ϵ_xz))
     push!(χ, sum(χ_xz))
     u_xz_mean = mean(u_xz, dims = 1)
@@ -87,13 +88,20 @@ plot!(P_energy)
 
 ΔKE = K_energy[2:end] - K_energy[1:end-1]
 ΔPE = P_energy[2:end] - P_energy[1:end-1]
-Γ = -ΔPE ./ (ΔKE + ΔPE)
-η = Γ ./ (1 .+ Γ)
+Γ1 = -ΔPE ./ (ΔKE + ΔPE)
+η = Γ1 ./ (1 .+ Γ1)
 plot(η, ylims=(-1,1))
 plot!(-ΔPE ./ ΔKE)
 
-plot(Γ)
-# plot!(buoyancy_flux./ (ϵ .+ buoyancy_flux),ylims=(-1,1))
+
+
+Γ1 = buoyancy_flux ./ (buoyancy_flux + ϵ)
+η1 = Γ1 ./ (1 .+ Γ1)
+plot(η1,ylims=(-10,10))
+
+Γ2 = χ ./ (χ + ϵ)
+η2 = Γ2 ./ (1 .+ Γ2)
+plot(η2,ylims=(0,10))
 
 
 # @info "Making an animation from saved data..."

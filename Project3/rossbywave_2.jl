@@ -35,7 +35,7 @@ l = 2 * pi / 200kilometers
 # Define functions for the initial conditions
 u₀ = 0.05   # units: 0.001m/s
 # U₀(x, y, z) = model.coriolis.β / (k^2 + l^2) * tanh((y - Ly/2) / Ly * 5)    #u₀ * tanh((y - Ly/2) / Ly * 5)        ######### mean flow 
-U₀(x, y, z) = 0.08
+U₀(x, y, z) = 0.05
 uᵢ(x, y, z) = U₀(x, y, z) + u₀ * sin(k * x) * sin(l * y)    #u₀ * sin(k * x) * sin(l * y)
 vᵢ(x, y, z) = u₀ * (k / l) * cos(k * x) * cos(l * y)
 wᵢ(x, y, z) = 0
@@ -45,7 +45,7 @@ cᵢ(x, y, z) = sin(k * x) * cos(l * y) # Here, we set the function for c so tha
 set!(model, u = uᵢ, v = vᵢ, w = wᵢ, c = cᵢ)
 
 # Create a 'simulation' to run the model for a specified length of time
-simulation = Simulation(model, Δt = 10hours, stop_iteration = 1000)
+simulation = Simulation(model, Δt = 10hours, stop_iteration = 3000)
 
 # Add callback that prints progress message during simulation
 progress(sim) = @info string("Iter: ", iteration(sim),
